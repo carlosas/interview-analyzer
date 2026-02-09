@@ -29,7 +29,7 @@ Response structure:
     - Improvement Plan: Specific steps to take in order to improve based on this analysis
 """
 
-st.set_page_config(page_title="Interview-Analyzer", page_icon="🤖")
+# st.set_page_config(page_title="Interview-Analyzer", page_icon="🤖")
 
 # Hide sidebar if not logged in
 if not st.session_state.get("password_correct", False):

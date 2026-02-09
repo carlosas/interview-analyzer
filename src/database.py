@@ -25,7 +25,7 @@ class Database:
         if not self.conn:
             return
         
-        query = """
+        query_interviews = """
         CREATE TABLE IF NOT EXISTS interviews (
             id SERIAL PRIMARY KEY,
             audio_filename TEXT NOT NULL,
@@ -35,9 +35,20 @@ class Database:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """
+        
+        query_cvs = """
+        CREATE TABLE IF NOT EXISTS cvs (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            filename TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+        
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query)
+                cur.execute(query_interviews)
+                cur.execute(query_cvs)
             self.conn.commit()
         except Exception as e:
             print(f"Error initializing DB: {e}")
@@ -125,5 +136,53 @@ class Database:
             return True
         except Exception as e:
             print(f"Error deleting interview: {e}")
+            self.conn.rollback()
+            return False
+
+    def save_cv(self, name, filename):
+        if not self.conn:
+            return None
+        
+        query = """
+        INSERT INTO cvs (name, filename)
+        VALUES (%s, %s)
+        RETURNING id;
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, (name, filename))
+                cv_id = cur.fetchone()[0]
+            self.conn.commit()
+            return cv_id
+        except Exception as e:
+            print(f"Error saving CV: {e}")
+            self.conn.rollback()
+            return None
+
+    def get_all_cvs(self):
+        if not self.conn:
+            return []
+            
+        query = "SELECT id, name, filename, created_at FROM cvs ORDER BY created_at DESC;"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query)
+                return cur.fetchall()
+        except Exception as e:
+            print(f"Error getting all CVs: {e}")
+            return []
+
+    def delete_cv(self, cv_id):
+        if not self.conn:
+            return False
+            
+        query = "DELETE FROM cvs WHERE id = %s;"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, (cv_id,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting CV: {e}")
             self.conn.rollback()
             return False
