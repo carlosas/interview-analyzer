@@ -16,7 +16,7 @@ services:
       - LOGIN_PASSWORD=${LOGIN_PASSWORD}
       - REDIS_HOST=redis
     depends_on:
-      - db
+      - database
       - redis
     command: streamlit run src/Home.py --server.port=8501 --server.address=0.0.0.0
 
@@ -24,7 +24,7 @@ services:
     image: redis:alpine
     restart: always
 
-  db:
+  database:
     image: postgres:15
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -41,7 +41,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - database
 
 volumes:
   postgres_data:

@@ -60,8 +60,8 @@ This project is built using a modern, robust stack:
 
    Open `.env` and fill in the required values:
    - `OPENAI_API_KEY`: Your OpenAI API key.
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`: Database credentials (constants usually fine for local docker use).
-   - `LOGIN_USER`, `LOGIN_PASSWORD`: Credentials you want to use to log in to the app.
+   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`: Database credentials.
+   - `LOGIN_USER`, `LOGIN_PASSWORD`: Credentials to log in to the app.
 
 3. **Start the Application:**
    Run the following command to build and start the services:
