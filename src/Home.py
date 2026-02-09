@@ -2,7 +2,7 @@ import streamlit as st
 from auth import check_password
 
 st.set_page_config(
-    page_title="Jobby",
+    page_title="Interview-Analyzer",
     page_icon="🤖",
 )
 
@@ -17,13 +17,13 @@ if not st.session_state.get("password_correct", False):
 
 check_password()
 
-st.title("Welcome to Jobby 🤖")
+st.title("Welcome to Interview-Analyzer 🤖")
 
 st.markdown("""
 This tool helps you analyze job interview transcriptions using AI. 
 
 ### How to use:
-1. Navigate to the **Interview Analyzer** page from the sidebar.
+1. Navigate to the **Interview-Analyzer** page from the sidebar.
 2. Upload an audio recording of an interview.
 3. The AI will transcribe the audio and generate a detailed analysis, including:
     - Executive Summary

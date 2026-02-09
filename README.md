@@ -1,20 +1,20 @@
-# Jobby
+# Interview-Analyzer
 
-<img src="assets/logo.png" align="right" width="100" alt="Jobby Logo">
+<img src="assets/logo.png" align="right" width="100" alt="Interview-Analyzer Logo">
 
 > 🚧 **WORK IN PROGRESS** 🚧
 
-Jobby is a tiny application designed to help you analyze and improve your job interview performance. It leverages AI to transcribe and analyze your interview recordings, providing actionable feedback.
+Interview-Analyzer is a tiny application designed to help you analyze and improve your job interview performance. It leverages AI to transcribe and analyze your interview recordings, providing actionable feedback.
 
 ---
 
 ![example new analysis](assets/example_new_analysis.png)
-*Interface for uploading and analyzing a new interview.*
+_Interface for uploading and analyzing a new interview._
 
 ---
 
 ![example analyzed interview](assets/example_analyzed_interview.png)
-*Detailed analysis and feedback view.*
+_Detailed analysis and feedback view._
 
 ---
 
@@ -45,16 +45,19 @@ This project is built using a modern, robust stack:
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone <repository_url>
-   cd jobby
+   cd interview-analyzer
    ```
 
 2. **Configure Environment Variables:**
    Copy the example environment file:
+
    ```bash
    cp .env.dist .env
    ```
+
    Open `.env` and fill in the required values:
    - `OPENAI_API_KEY`: Your OpenAI API key.
    - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`: Database credentials (constants usually fine for local docker use).
@@ -76,6 +79,7 @@ This project is built using a modern, robust stack:
 ## Database Management
 
 The project includes **Adminer** for easy database management.
+
 - Access Adminer at `http://localhost:8080`.
 - System: PostgreSQL.
 - Server: `db`.
