@@ -83,14 +83,15 @@ with st.sidebar:
         st.session_state.selected_interview_id = None
         st.session_state.interview_selector = None
         st.rerun()
-    
+
     interviews = orchestrator.get_all_interviews()
     if interviews:
         interview_map = {f"{i[1]} ({i[2]})": i[0] for i in interviews}
-        
+
         def on_interview_change():
             if st.session_state.interview_selector:
-                st.session_state.selected_interview_id = interview_map[st.session_state.interview_selector]
+                st.session_state.selected_interview_id = interview_map[
+                    st.session_state.interview_selector]
             else:
                 st.session_state.selected_interview_id = None
 
@@ -112,16 +113,19 @@ def validate_prompt(prompt):
         return False
     return True
 
+
 to_delete = None
 
 if st.session_state.selected_interview_id:
-    interview = orchestrator.get_interview(st.session_state.selected_interview_id)
+    interview = orchestrator.get_interview(
+        st.session_state.selected_interview_id)
     if interview:
         st.info(f"Viewing analysis for: {interview[1]}")
-        
+
         @st.dialog("Confirm Deletion")
         def delete_dialog(interview_id):
-            st.warning("Are you sure you want to delete this interview? This action cannot be undone.")
+            st.warning(
+                "Are you sure you want to delete this interview? This action cannot be undone.")
             if st.button("Delete", type="primary"):
                 if orchestrator.delete_interview(interview_id):
                     st.success("Interview deleted.")
@@ -132,7 +136,7 @@ if st.session_state.selected_interview_id:
                     st.error("Failed to delete interview.")
 
         tab1, tab2 = st.tabs(["Transcription", "Analysis"])
-        
+
         with tab1:
             st.text_area("Full Transcription", interview[2], height=400)
             if st.button("🗑️ Delete Interview", type="primary"):
@@ -142,18 +146,20 @@ if st.session_state.selected_interview_id:
             # Re-analysis UI
             current_analysis = interview[3] if interview[3] else "No analysis available."
             # Retrieve saved prompt or use default if none exists (migration case)
-            saved_prompt = interview[4] if len(interview) > 4 and interview[4] else DEFAULT_ANALYSIS_PROMPT
-            
+            saved_prompt = interview[4] if len(
+                interview) > 4 and interview[4] else DEFAULT_ANALYSIS_PROMPT
+
             st.markdown(current_analysis)
             st.divider()
-            
+
             st.subheader("Re-analyze Interview")
-            
+
             # CV Selector for Re-analysis
             cv_context_reanalyze = None
             cvs = orchestrator.get_all_cvs()
-            cv_options = {f"{cv[1]} ({os.path.basename(cv[2])})": cv[0] for cv in cvs} if cvs else {}
-            
+            cv_options = {f"{cv[1]} ({os.path.basename(cv[2])})": cv[0]
+                          for cv in cvs} if cvs else {}
+
             selected_cv_reanalyze = st.selectbox(
                 "Select CV for Context (Optional)",
                 options=list(cv_options.keys()),
@@ -166,10 +172,11 @@ if st.session_state.selected_interview_id:
                 cv_id = cv_options[selected_cv_reanalyze]
                 full_cv = orchestrator.get_cv(cv_id)
                 if full_cv:
-                    cv_context_reanalyze = full_cv[3] # text_content
+                    cv_context_reanalyze = full_cv[3]  # text_content
 
-            new_prompt = st.text_area("Update Prompt for Re-analysis", value=saved_prompt, height=150, key="reanalysis_prompt")
-            
+            new_prompt = st.text_area(
+                "Update Prompt for Re-analysis", value=saved_prompt, height=150, key="reanalysis_prompt")
+
             if st.button("🔄 Re-analyze"):
                 if not validate_prompt(new_prompt):
                     st.warning("Prompt cannot be empty.")
@@ -178,8 +185,8 @@ if st.session_state.selected_interview_id:
                         try:
                             # We pass the transcript (interview[2]) to the orchestrator
                             orchestrator.reanalyze_interview(
-                                interview[0], 
-                                interview[2], 
+                                interview[0],
+                                interview[2],
                                 new_prompt,
                                 cv_context=cv_context_reanalyze
                             )
@@ -187,20 +194,24 @@ if st.session_state.selected_interview_id:
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error during re-analysis: {e}")
-            
+
         st.stop()
 
-st.markdown("Upload a job interview recording to get a transcription and analysis.")
+st.markdown(
+    "Upload a job interview recording to get a transcription and analysis.")
 
-system_prompt = st.text_area("Prompt", value=DEFAULT_ANALYSIS_PROMPT, height=150)
+system_prompt = st.text_area(
+    "Prompt", value=DEFAULT_ANALYSIS_PROMPT, height=150)
 
 
-uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "m4a", "mp4"])
+uploaded_file = st.file_uploader("Upload an audio file", type=[
+                                 "mp3", "wav", "m4a", "mp4"])
 
 # CV Selector for New Analysis
 cv_context_new = None
 cvs = orchestrator.get_all_cvs()
-cv_options = {f"{cv[1]} ({os.path.basename(cv[2])})": cv[0] for cv in cvs} if cvs else {}
+cv_options = {f"{cv[1]} ({os.path.basename(cv[2])})": cv[0]
+              for cv in cvs} if cvs else {}
 
 selected_cv_new = st.selectbox(
     "Select CV for Context (Optional)",
@@ -214,29 +225,30 @@ if selected_cv_new:
     cv_id = cv_options[selected_cv_new]
     full_cv = orchestrator.get_cv(cv_id)
     if full_cv:
-        cv_context_new = full_cv[3] # text_content
+        cv_context_new = full_cv[3]  # text_content
 
 if st.button("✨ Analyze"):
     if uploaded_file is not None:
-        st.info(f"File '{uploaded_file.name}' uploaded successfully. Processing...")
-        
+        st.info(
+            f"File '{uploaded_file.name}' uploaded successfully. Processing...")
+
         try:
             st.subheader("Processing...")
             with st.spinner("Transcribing and Analyzing (this may take a minute)..."):
                 # Delegate everything to orchestrator
                 # Note: getbuffer() returns a memoryview, which we can treat as bytes
                 interview_id = orchestrator.process_new_interview(
-                    uploaded_file.name, 
-                    uploaded_file.getbuffer(), 
+                    uploaded_file.name,
+                    uploaded_file.getbuffer(),
                     system_prompt,
                     cv_context=cv_context_new
                 )
-            
+
             st.success("Processing complete!")
             st.info("Results saved to database.")
             st.session_state.selected_interview_id = interview_id
             st.rerun()
-                
+
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:

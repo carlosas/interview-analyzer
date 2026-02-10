@@ -23,7 +23,8 @@ pages = {
         st.Page("views/home.py", title="Home", icon="🏠"),
     ],
     "Apps": [
-        st.Page("views/interview_analyzer.py", title="Interview Analyzer", icon="🤖"),
+        st.Page("views/interview_analyzer.py",
+                title="Interview Analyzer", icon="🤖"),
     ],
     "Context": [
         st.Page("views/cv.py", title="Curriculum Vitae", icon="📄"),

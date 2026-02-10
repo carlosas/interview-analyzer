@@ -2,6 +2,7 @@ import os
 import psycopg2
 from datetime import datetime
 
+
 class Database:
     def __init__(self):
         self.conn = None
@@ -24,7 +25,7 @@ class Database:
     def init_db(self):
         if not self.conn:
             return
-        
+
         query_interviews = """
         CREATE TABLE IF NOT EXISTS interviews (
             id SERIAL PRIMARY KEY,
@@ -35,7 +36,7 @@ class Database:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """
-        
+
         query_cvs = """
         CREATE TABLE IF NOT EXISTS cvs (
             id SERIAL PRIMARY KEY,
@@ -56,7 +57,7 @@ class Database:
         END
         $$;
         """
-        
+
         try:
             with self.conn.cursor() as cur:
                 cur.execute(query_interviews)
@@ -70,7 +71,7 @@ class Database:
     def save_transcription(self, analysis_prompt, filename, text):
         if not self.conn:
             return None
-        
+
         query = """
         INSERT INTO interviews (analysis_prompt, audio_filename, transcription)
         VALUES (%s, %s, %s)
@@ -90,7 +91,7 @@ class Database:
     def update_analysis(self, interview_id, analysis_text, analysis_prompt=None):
         if not self.conn:
             return
-        
+
         query = """
         UPDATE interviews
         SET analysis = %s, analysis_prompt = %s
@@ -98,17 +99,17 @@ class Database:
         """
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query, (analysis_text, analysis_prompt, interview_id))
+                cur.execute(
+                    query, (analysis_text, analysis_prompt, interview_id))
             self.conn.commit()
         except Exception as e:
             print(f"Error updating analysis: {e}")
             self.conn.rollback()
 
-
     def get_interview(self, interview_id):
         if not self.conn:
             return None
-            
+
         # Explicitly select columns to ensure consistent indexing in main.py
         # 0: id, 1: filename, 2: transcription, 3: analysis, 4: prompt, 5: created_at
         query = """
@@ -127,7 +128,7 @@ class Database:
     def get_all_interviews(self):
         if not self.conn:
             return []
-            
+
         query = "SELECT id, audio_filename, created_at FROM interviews ORDER BY created_at DESC;"
         try:
             with self.conn.cursor() as cur:
@@ -140,7 +141,7 @@ class Database:
     def delete_interview(self, interview_id):
         if not self.conn:
             return False
-            
+
         query = "DELETE FROM interviews WHERE id = %s;"
         try:
             with self.conn.cursor() as cur:
@@ -155,7 +156,7 @@ class Database:
     def save_cv(self, name, filename, text_content=None):
         if not self.conn:
             return None
-        
+
         query = """
         INSERT INTO cvs (name, filename, text_content)
         VALUES (%s, %s, %s)
@@ -175,7 +176,7 @@ class Database:
     def get_all_cvs(self):
         if not self.conn:
             return []
-            
+
         query = "SELECT id, name, filename, created_at FROM cvs ORDER BY created_at DESC;"
         try:
             with self.conn.cursor() as cur:
@@ -188,7 +189,7 @@ class Database:
     def delete_cv(self, cv_id):
         if not self.conn:
             return False
-            
+
         query = "DELETE FROM cvs WHERE id = %s;"
         try:
             with self.conn.cursor() as cur:
@@ -203,7 +204,7 @@ class Database:
     def get_cv(self, cv_id):
         if not self.conn:
             return None
-            
+
         query = "SELECT id, name, filename, text_content, created_at FROM cvs WHERE id = %s;"
         try:
             with self.conn.cursor() as cur:
@@ -216,7 +217,7 @@ class Database:
     def update_cv_text(self, cv_id, text_content):
         if not self.conn:
             return False
-            
+
         query = "UPDATE cvs SET text_content = %s WHERE id = %s;"
         try:
             with self.conn.cursor() as cur:
