@@ -11,7 +11,7 @@ help:
 	@echo "  rebuild    Rebuild containers (applies requirements.txt and migrations)"
 	@echo "  purge      Remove database, uploads, docker images, and volumes (CAUTION!)"
 	@echo "  logs       View logs"
-	@echo "  lint       Run autopep8 linter on src directory"
+	@echo "  integrate  Run autopep8 linter on src directory"
 
 start:
 	$(COMPOSE) up -d
