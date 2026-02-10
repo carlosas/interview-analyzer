@@ -1,4 +1,5 @@
 import streamlit as st
+from pypdf import PdfReader
 import os
 import time
 from database import Database
@@ -56,52 +57,76 @@ if st.session_state.selected_cv_id and cvs:
     selected_cv = next((c for c in cvs if c[0] == st.session_state.selected_cv_id), None)
 
 if selected_cv:
-    cv_id, name, filepath, created_at = selected_cv
+    # Fetch full details including text_content
+    full_cv = db.get_cv(selected_cv[0])
     
-    st.info(f"Viewing CV: {name}")
-    st.markdown(f"**Filename:** {os.path.basename(filepath)}")
-    st.markdown(f"**Uploaded:** {created_at}")
+    if full_cv:
+        cv_id, name, filename, text_content, created_at = full_cv
+        
+        st.info(f"Viewing: {name}")
+        
+        # Layout: Metadata and Actions
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+             st.markdown(f"**Filename:** {os.path.basename(filename)}")
+             st.markdown(f"**Uploaded:** {created_at}")
 
-    # Check if file exists
-    if os.path.exists(filepath):
-        # Read file for download
-        try:
-            with open(filepath, "rb") as f:
-                pdf_data = f.read()
-            st.download_button(
-                label="⬇️ Download PDF",
-                data=pdf_data,
-                file_name=os.path.basename(filepath),
-                mime="application/pdf"
-            )
-        except Exception as e:
-            st.error(f"Error reading file: {e}")
-    else:
-        st.warning("⚠️ File not found on server.")
-
-    st.divider()
-    
-    @st.dialog("Confirm Deletion")
-    def delete_dialog(cv_id):
-        st.warning("Are you sure you want to delete this CV? This action cannot be undone.")
-        if st.button("Delete", type="primary"):
-            if db.delete_cv(cv_id):
-                # Try deleting actual file
-                if os.path.exists(filepath):
-                    try:
-                        os.remove(filepath)
-                    except Exception as e:
-                        print(f"Error deleting file {filepath}: {e}")
-                
-                st.success("CV deleted.")
-                st.session_state.selected_cv_id = None
-                st.session_state.cv_selector = None
-                st.rerun()
+        with col2:
+            # Download Button
+            if os.path.exists(filename):
+                try:
+                    with open(filename, "rb") as f:
+                        pdf_data = f.read()
+                    st.download_button(
+                        label="⬇️ Download PDF",
+                        data=pdf_data,
+                        file_name=os.path.basename(filename),
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"Error reading file: {e}")
             else:
-                st.error("Failed to delete CV.")
+                st.warning("⚠️ File not found.")
 
-    if st.button("🗑️ Delete CV", type="primary"):
-        delete_dialog(cv_id)
+            # Delete Button
+            @st.dialog("Confirm Deletion")
+            def delete_dialog(cv_id):
+                st.warning("Are you sure you want to delete this CV? This action cannot be undone.")
+                if st.button("Delete", type="primary"):
+                    if db.delete_cv(cv_id):
+                        if os.path.exists(filename):
+                            try:
+                                os.remove(filename)
+                            except Exception as e:
+                                print(f"Error deleting file {filename}: {e}")
+                        
+                        st.success("CV deleted.")
+                        st.session_state.selected_cv_id = None
+                        st.session_state.cv_selector = None
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete CV.")
+
+            if st.button("🗑️ Delete CV", type="primary", use_container_width=True):
+                delete_dialog(cv_id)
+
+        st.divider()
+
+        # Editable Text Area
+        with st.expander("📝 Extracted Text (Editable)", expanded=False):
+            new_text = st.text_area("Content", value=text_content, height=400, label_visibility="collapsed")
+            if st.button("💾 Save Text", type="primary"):
+                if db.update_cv_text(cv_id, new_text):
+                    st.success("Text updated successfully!")
+                    time.sleep(1) # Give user time to see success message
+                    st.rerun()
+                else:
+                    st.error("Failed to update text.")
+
+    else:
+        st.error("CV not found in database.")
 
 elif st.session_state.selected_cv_id:
      # ID set but not found
@@ -133,9 +158,18 @@ else:
                 try:
                     with open(filepath, "wb") as f:
                         f.write(uploaded_file.getbuffer())
+                    
+                    # Extract text content
+                    text_content = ""
+                    try:
+                        reader = PdfReader(filepath)
+                        for page in reader.pages:
+                            text_content += page.extract_text() + "\n"
+                    except Exception as e:
+                        print(f"Error extracting PDF text: {e}")
                         
                     # Save to DB
-                    cv_id = db.save_cv(cv_name, filepath)
+                    cv_id = db.save_cv(cv_name, filepath, text_content)
                     if cv_id:
                         st.success("CV saved successfully!")
                         st.session_state.selected_cv_id = cv_id

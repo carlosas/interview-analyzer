@@ -20,14 +20,19 @@ class LLMService:
             )
         return transcription_response.text
 
-    def analyze_interview(self, transcription, system_prompt):
+    def analyze_interview(self, transcription, system_prompt, context_text=None):
         """
         Analyzes the interview transcription using a ChatOpenAI model.
         """
         chat_model = ChatOpenAI(model="gpt-4o", temperature=0.5, api_key=self.openai_api_key)
+        
+        user_content = f"Transcript:\n{transcription}"
+        if context_text:
+             user_content = f"Context (e.g. CV):\n{context_text}\n\n" + user_content
+
         messages = [
             SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Transcript:\n{transcription}")
+            HumanMessage(content=user_content)
         ]
         response = chat_model.invoke(messages)
         return response.content

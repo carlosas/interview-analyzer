@@ -41,14 +41,27 @@ class Database:
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             filename TEXT NOT NULL,
+            text_content TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+        """
+
+        # Migration for existing tables: Add text_content column if it doesn't exist
+        query_migration = """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cvs' AND column_name='text_content') THEN
+                ALTER TABLE cvs ADD COLUMN text_content TEXT;
+            END IF;
+        END
+        $$;
         """
         
         try:
             with self.conn.cursor() as cur:
                 cur.execute(query_interviews)
                 cur.execute(query_cvs)
+                cur.execute(query_migration)
             self.conn.commit()
         except Exception as e:
             print(f"Error initializing DB: {e}")
@@ -139,18 +152,18 @@ class Database:
             self.conn.rollback()
             return False
 
-    def save_cv(self, name, filename):
+    def save_cv(self, name, filename, text_content=None):
         if not self.conn:
             return None
         
         query = """
-        INSERT INTO cvs (name, filename)
-        VALUES (%s, %s)
+        INSERT INTO cvs (name, filename, text_content)
+        VALUES (%s, %s, %s)
         RETURNING id;
         """
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query, (name, filename))
+                cur.execute(query, (name, filename, text_content))
                 cv_id = cur.fetchone()[0]
             self.conn.commit()
             return cv_id
@@ -184,5 +197,33 @@ class Database:
             return True
         except Exception as e:
             print(f"Error deleting CV: {e}")
+            self.conn.rollback()
+            return False
+
+    def get_cv(self, cv_id):
+        if not self.conn:
+            return None
+            
+        query = "SELECT id, name, filename, text_content, created_at FROM cvs WHERE id = %s;"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, (cv_id,))
+                return cur.fetchone()
+        except Exception as e:
+            print(f"Error getting CV: {e}")
+            return None
+
+    def update_cv_text(self, cv_id, text_content):
+        if not self.conn:
+            return False
+            
+        query = "UPDATE cvs SET text_content = %s WHERE id = %s;"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, (text_content, cv_id))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating CV text: {e}")
             self.conn.rollback()
             return False
