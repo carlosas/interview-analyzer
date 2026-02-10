@@ -17,20 +17,18 @@ if not st.session_state.get("password_correct", False):
 
 check_password()
 
-st.title("Welcome to Interview-Analyzer 🤖")
+# Navigation Structure
+pages = {
+    "General": [
+        st.Page("views/home.py", title="Home", icon="🏠"),
+    ],
+    "Apps": [
+        st.Page("views/interview_analyzer.py", title="Interview Analyzer", icon="🤖"),
+    ],
+    "Context": [
+        st.Page("views/cv.py", title="Curriculum Vitae", icon="📄"),
+    ]
+}
 
-st.markdown("""
-This tool helps you analyze job interview transcriptions using AI. 
-
-### How to use:
-1. Navigate to the **Interview-Analyzer** page from the sidebar.
-2. Upload an audio recording of an interview.
-3. The AI will transcribe the audio and generate a detailed analysis, including:
-    - Executive Summary
-    - Skills Assessment
-    - Behavioral Analysis (STAR method)
-    - Sentiment Analysis
-    - And more!
-
-You can also browse and re-analyze past interviews using a different prompt.
-""")
+pg = st.navigation(pages)
+pg.run()

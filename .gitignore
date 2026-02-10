@@ -3,4 +3,4 @@ __pycache__
 .env
 .agent/
 .DS_Store
-examples/
+uploads/
