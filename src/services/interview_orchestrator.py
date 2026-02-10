@@ -2,6 +2,7 @@ import os
 from database import Database
 from services.llm_service import LLMService
 
+
 class InterviewOrchestrator:
     def __init__(self):
         self.db = Database()
@@ -29,24 +30,26 @@ class InterviewOrchestrator:
         try:
             with open(file_path, "wb") as f:
                 f.write(file_content)
-            
+
             # 1. Transcribe
             transcription_text = self.llm_service.transcribe_audio(file_path)
-            
+
             # 2. Save initial transcription to DB
-            interview_id = self.db.save_transcription(system_prompt, file_name, transcription_text)
-            
+            interview_id = self.db.save_transcription(
+                system_prompt, file_name, transcription_text)
+
             if not interview_id:
                 raise Exception("Failed to save transcription to database.")
 
             # 3. Analyze
-            analysis_text = self.llm_service.analyze_interview(transcription_text, system_prompt, cv_context)
-            
+            analysis_text = self.llm_service.analyze_interview(
+                transcription_text, system_prompt, cv_context)
+
             # 4. Update DB with analysis
             self.db.update_analysis(interview_id, analysis_text, system_prompt)
-            
+
             return interview_id
-            
+
         finally:
             if os.path.exists(file_path):
                 os.remove(file_path)
@@ -55,7 +58,8 @@ class InterviewOrchestrator:
         """
         Re-runs the analysis on an existing transcription.
         """
-        new_analysis = self.llm_service.analyze_interview(transcription_text, new_prompt, cv_context)
+        new_analysis = self.llm_service.analyze_interview(
+            transcription_text, new_prompt, cv_context)
         self.db.update_analysis(interview_id, new_analysis, new_prompt)
         return new_analysis
 

@@ -1,4 +1,6 @@
-.PHONY: help start stop rebuild purge logs
+COMPOSE := COMPOSE_BAKE=true docker compose
+
+.PHONY: help start stop rebuild purge logs lint
 
 help:
 	@echo "Usage: make [target]"
@@ -9,22 +11,23 @@ help:
 	@echo "  rebuild    Rebuild containers (applies requirements.txt and migrations)"
 	@echo "  purge      Remove database, uploads, docker images, and volumes (CAUTION!)"
 	@echo "  logs       View logs"
+	@echo "  lint       Run autopep8 linter on src directory"
 
 start:
-	docker compose up -d
+	$(COMPOSE) up -d
 
 stop:
-	docker compose down
+	$(COMPOSE) down
 
 rebuild:
-	docker compose down
-	docker compose build --no-cache
-	docker compose up -d
+	$(COMPOSE) down
+	$(COMPOSE) build --no-cache
+	$(COMPOSE) up -d
 
 purge:
 	@read -p "Are you sure you want to purge everything (database, uploads, volumes)? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-		docker compose down -v --rmi all --remove-orphans; \
+		$(COMPOSE) down -v --rmi all --remove-orphans; \
 		rm -rf uploads/*; \
 		echo "Purge complete."; \
 	else \
@@ -32,4 +35,7 @@ purge:
 	fi
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
+
+integrate:
+	$(COMPOSE) exec streamlit-app autopep8 --in-place --recursive src

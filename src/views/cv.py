@@ -30,9 +30,10 @@ with st.sidebar:
 
         # Sync: If selected_cv_id is set, ensure selector matches
         if st.session_state.selected_cv_id:
-             current_label = next((k for k, v in cv_map.items() if v == st.session_state.selected_cv_id), None)
-             if current_label:
-                 st.session_state.cv_selector = current_label
+            current_label = next(
+                (k for k, v in cv_map.items() if v == st.session_state.selected_cv_id), None)
+            if current_label:
+                st.session_state.cv_selector = current_label
 
         def on_cv_change():
             if st.session_state.cv_selector:
@@ -54,23 +55,24 @@ with st.sidebar:
 # --- Main Content ---
 selected_cv = None
 if st.session_state.selected_cv_id and cvs:
-    selected_cv = next((c for c in cvs if c[0] == st.session_state.selected_cv_id), None)
+    selected_cv = next(
+        (c for c in cvs if c[0] == st.session_state.selected_cv_id), None)
 
 if selected_cv:
     # Fetch full details including text_content
     full_cv = db.get_cv(selected_cv[0])
-    
+
     if full_cv:
         cv_id, name, filename, text_content, created_at = full_cv
-        
+
         st.info(f"Viewing: {name}")
-        
+
         # Layout: Metadata and Actions
         col1, col2 = st.columns([2, 1])
-        
+
         with col1:
-             st.markdown(f"**Filename:** {os.path.basename(filename)}")
-             st.markdown(f"**Uploaded:** {created_at}")
+            st.markdown(f"**Filename:** {os.path.basename(filename)}")
+            st.markdown(f"**Uploaded:** {created_at}")
 
         with col2:
             # Download Button
@@ -93,7 +95,8 @@ if selected_cv:
             # Delete Button
             @st.dialog("Confirm Deletion")
             def delete_dialog(cv_id):
-                st.warning("Are you sure you want to delete this CV? This action cannot be undone.")
+                st.warning(
+                    "Are you sure you want to delete this CV? This action cannot be undone.")
                 if st.button("Delete", type="primary"):
                     if db.delete_cv(cv_id):
                         if os.path.exists(filename):
@@ -101,7 +104,7 @@ if selected_cv:
                                 os.remove(filename)
                             except Exception as e:
                                 print(f"Error deleting file {filename}: {e}")
-                        
+
                         st.success("CV deleted.")
                         st.session_state.selected_cv_id = None
                         st.session_state.cv_selector = None
@@ -116,11 +119,12 @@ if selected_cv:
 
         # Editable Text Area
         with st.expander("📝 Extracted Text (Editable)", expanded=False):
-            new_text = st.text_area("Content", value=text_content, height=400, label_visibility="collapsed")
+            new_text = st.text_area(
+                "Content", value=text_content, height=400, label_visibility="collapsed")
             if st.button("💾 Save Text", type="primary"):
                 if db.update_cv_text(cv_id, new_text):
                     st.success("Text updated successfully!")
-                    time.sleep(1) # Give user time to see success message
+                    time.sleep(1)  # Give user time to see success message
                     st.rerun()
                 else:
                     st.error("Failed to update text.")
@@ -129,9 +133,9 @@ if selected_cv:
         st.error("CV not found in database.")
 
 elif st.session_state.selected_cv_id:
-     # ID set but not found
-     st.session_state.selected_cv_id = None
-     st.rerun()
+    # ID set but not found
+    st.session_state.selected_cv_id = None
+    st.rerun()
 
 else:
     # --- Upload Section ---
@@ -150,15 +154,15 @@ else:
                 # Save file
                 uploads_dir = "uploads"
                 os.makedirs(uploads_dir, exist_ok=True)
-                
+
                 timestamp = int(time.time())
                 filename = f"{timestamp}_{uploaded_file.name}"
                 filepath = os.path.join(uploads_dir, filename)
-                
+
                 try:
                     with open(filepath, "wb") as f:
                         f.write(uploaded_file.getbuffer())
-                    
+
                     # Extract text content
                     text_content = ""
                     try:
@@ -167,7 +171,7 @@ else:
                             text_content += page.extract_text() + "\n"
                     except Exception as e:
                         print(f"Error extracting PDF text: {e}")
-                        
+
                     # Save to DB
                     cv_id = db.save_cv(cv_name, filepath, text_content)
                     if cv_id:
