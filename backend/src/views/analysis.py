@@ -71,14 +71,14 @@ Output Format:
  - What to add or remove in future interviews
 """
 
-st.title("\U0001f4ca Analysis")
+st.title("\U0001f916 Interview Analyzer")
 
 # --- Sidebar: analysis history ---
-st.sidebar.header("Analysis History")
+st.sidebar.header("Interview Analyzer")
 
 analyses = list(analysis_service.get_analyses({}))
 analysis_options: list[str] = ["+ New Analysis"] + [
-    f"{a.transcription.audio_filename} ({a.status})" for a in analyses
+    f"{a.transcription.name} ({a.status})" for a in analyses
 ]
 
 selected_idx = st.sidebar.selectbox(
@@ -100,8 +100,7 @@ if selected_idx == 0:
         st.warning("No completed transcriptions available. Transcribe an audio file first.")
     else:
         transcription_options = [
-            f"{t.audio_filename} ({t.created_at:%Y-%m-%d %H:%M})"
-            for t in completed_transcriptions
+            f"{t.name} ({t.created_at:%Y-%m-%d %H:%M})" for t in completed_transcriptions
         ]
         transcription_choice = st.selectbox(
             "Select a transcription",
@@ -151,9 +150,7 @@ if selected_idx == 0:
                     st.write("Analyzing transcription with AI...")
                     orchestrator.analyze(analysis)
 
-                    status.update(
-                        label="Analysis complete!", state="complete", expanded=False
-                    )
+                    status.update(label="Analysis complete!", state="complete", expanded=False)
                     st.rerun()
                 except Exception as exc:
                     orchestrator.fail(analysis, exc)
@@ -165,7 +162,7 @@ else:
     analysis = analyses[selected_idx - 1]
     analysis.refresh_from_db()
 
-    st.subheader(f"Analysis: {analysis.transcription.audio_filename}")
+    st.subheader(f"Analysis: {analysis.transcription.name}")
     st.caption(
         f"Status: **{analysis.get_status_display()}** "
         f"| Created: {analysis.created_at:%Y-%m-%d %H:%M}"

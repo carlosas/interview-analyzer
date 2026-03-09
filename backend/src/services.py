@@ -79,8 +79,9 @@ class TranscriptionService:
     def get_transcription(self, transcription_id: uuid.UUID) -> Transcription:
         return Transcription.objects.get(pk=transcription_id)
 
-    def create_transcription(self, audio_file: UploadedFile) -> Transcription:
+    def create_transcription(self, name: str, audio_file: UploadedFile) -> Transcription:
         return Transcription.objects.create(
+            name=name,
             audio_filename=audio_file.name or "",
             audio_file=audio_file,
             status=Transcription.Status.PENDING,

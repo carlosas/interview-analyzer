@@ -16,9 +16,9 @@ class TranscriptionOrchestrator:
         self.transcription_service = TranscriptionService()
         self.llm_service = LLMService()
 
-    def create(self, audio_file: UploadedFile) -> Transcription:
+    def create(self, name: str, audio_file: UploadedFile) -> Transcription:
         """Create a new transcription record."""
-        return self.transcription_service.create_transcription(audio_file=audio_file)
+        return self.transcription_service.create_transcription(name=name, audio_file=audio_file)
 
     def transcribe(self, transcription: Transcription) -> Transcription:
         """Transcribe the audio. Updates the transcription in-place and in DB."""

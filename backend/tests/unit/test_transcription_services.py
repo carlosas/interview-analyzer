@@ -20,6 +20,7 @@ class TestTranscriptionService(TestCase):
     def _create_transcription(
         self,
         filename: str = "interview.mp3",
+        name: str = "Interview",
         status: str = Transcription.Status.PENDING,
         **kwargs: object,
     ) -> Transcription:
@@ -29,6 +30,7 @@ class TestTranscriptionService(TestCase):
             content_type="audio/mpeg",
         )
         return Transcription.objects.create(
+            name=name,
             audio_filename=filename,
             audio_file=audio,
             status=status,
@@ -47,9 +49,7 @@ class TestTranscriptionService(TestCase):
     def test_get_transcriptions_filter_by_status(self) -> None:
         """get_transcriptions should filter by status when provided."""
         self._create_transcription(filename="pending.mp3", status=Transcription.Status.PENDING)
-        self._create_transcription(
-            filename="completed.mp3", status=Transcription.Status.COMPLETED
-        )
+        self._create_transcription(filename="completed.mp3", status=Transcription.Status.COMPLETED)
         self._create_transcription(filename="failed.mp3", status=Transcription.Status.FAILED)
 
         result = self.service.get_transcriptions({"status": Transcription.Status.COMPLETED})
@@ -104,17 +104,16 @@ class TestTranscriptionService(TestCase):
             content_type="audio/mpeg",
         )
 
-        transcription = self.service.create_transcription(audio_file=audio)
+        transcription = self.service.create_transcription(name="My Interview", audio_file=audio)
 
         self.assertEqual(transcription.status, Transcription.Status.PENDING)
+        self.assertEqual(transcription.name, "My Interview")
         self.assertEqual(transcription.audio_filename, "interview.mp3")
 
     def test_get_completed_transcriptions(self) -> None:
         """get_completed_transcriptions should only return completed transcriptions."""
         self._create_transcription(filename="pending.mp3", status=Transcription.Status.PENDING)
-        self._create_transcription(
-            filename="completed.mp3", status=Transcription.Status.COMPLETED
-        )
+        self._create_transcription(filename="completed.mp3", status=Transcription.Status.COMPLETED)
         self._create_transcription(filename="failed.mp3", status=Transcription.Status.FAILED)
 
         result = self.service.get_completed_transcriptions()

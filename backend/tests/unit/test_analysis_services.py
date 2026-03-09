@@ -22,6 +22,7 @@ class TestAnalysisService(TestCase):
     def _create_completed_transcription(self) -> Transcription:
         audio = SimpleUploadedFile("audio.mp3", b"fake", content_type="audio/mpeg")
         return Transcription.objects.create(
+            name="Test Interview",
             audio_filename="audio.mp3",
             audio_file=audio,
             transcription="Some transcription text",

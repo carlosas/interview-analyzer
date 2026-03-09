@@ -30,6 +30,7 @@ class Transcription(models.Model):
         FAILED = "failed", "Failed"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, default="")
     audio_filename = models.CharField(max_length=500)
     audio_file = models.FileField(upload_to="transcriptions/audio/")
     transcription = models.TextField(blank=True, default="")
@@ -43,7 +44,7 @@ class Transcription(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return f"Transcription {self.id} - {self.audio_filename} ({self.status})"
+        return f"Transcription {self.id} - {self.name} ({self.status})"
 
 
 class Analysis(models.Model):
@@ -73,4 +74,4 @@ class Analysis(models.Model):
         verbose_name_plural = "Analyses"
 
     def __str__(self) -> str:
-        return f"Analysis {self.id} - {self.transcription.audio_filename} ({self.status})"
+        return f"Analysis {self.id} - {self.transcription.name} ({self.status})"

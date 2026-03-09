@@ -22,7 +22,7 @@ class TestTranscriptionOrchestrator(TestCase):
 
         orchestrator = TranscriptionOrchestrator()
         audio = SimpleUploadedFile("test.mp3", b"fake audio", content_type="audio/mpeg")
-        transcription = orchestrator.create(audio_file=audio)
+        transcription = orchestrator.create(name="Test Interview", audio_file=audio)
         orchestrator.transcribe(transcription)
 
         transcription.refresh_from_db()
@@ -38,7 +38,7 @@ class TestTranscriptionOrchestrator(TestCase):
 
         orchestrator = TranscriptionOrchestrator()
         audio = SimpleUploadedFile("test.mp3", b"fake audio", content_type="audio/mpeg")
-        transcription = orchestrator.create(audio_file=audio)
+        transcription = orchestrator.create(name="Test Interview", audio_file=audio)
         orchestrator.transcribe(transcription)
 
         transcription.refresh_from_db()
@@ -53,7 +53,7 @@ class TestTranscriptionOrchestrator(TestCase):
 
         orchestrator = TranscriptionOrchestrator()
         audio = SimpleUploadedFile("test.mp3", b"fake audio", content_type="audio/mpeg")
-        transcription = orchestrator.create(audio_file=audio)
+        transcription = orchestrator.create(name="Test Interview", audio_file=audio)
 
         try:
             orchestrator.transcribe(transcription)
@@ -72,6 +72,7 @@ class TestAnalysisOrchestrator(TestCase):
     def _create_completed_transcription(self, text: str = "Some transcription") -> Transcription:
         audio = SimpleUploadedFile("audio.mp3", b"fake", content_type="audio/mpeg")
         return Transcription.objects.create(
+            name="Test Interview",
             audio_filename="audio.mp3",
             audio_file=audio,
             transcription=text,
@@ -96,9 +97,7 @@ class TestAnalysisOrchestrator(TestCase):
 
     @patch("src.orchestrator.LLMService")
     @patch.object(CVService, "_extract_text_from_pdf", return_value="CV text content")
-    def test_analyze_with_cv(
-        self, mock_extract: MagicMock, mock_llm_cls: MagicMock
-    ) -> None:
+    def test_analyze_with_cv(self, mock_extract: MagicMock, mock_llm_cls: MagicMock) -> None:
         """analyze should pass CV text to analyze_interview when a CV is linked."""
         cv_service = CVService()
         cv = cv_service.create_cv(
