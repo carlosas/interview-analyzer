@@ -3,101 +3,83 @@ import uuid
 
 from django.core.files.uploadedfile import UploadedFile
 
-from src.models import Interview
-from src.services import CVService, InterviewService, LLMService
+from src.models import Analysis, Transcription
+from src.services import AnalysisService, LLMService, TranscriptionService
 
 logger = logging.getLogger(__name__)
 
 
-class InterviewOrchestrator:
-    """Synchronous interview processing pipeline (replaces Celery tasks)."""
+class TranscriptionOrchestrator:
+    """Synchronous transcription processing pipeline."""
 
     def __init__(self) -> None:
-        self.interview_service = InterviewService()
-        self.cv_service = CVService()
+        self.transcription_service = TranscriptionService()
+        self.llm_service = LLMService()
+
+    def create(self, audio_file: UploadedFile) -> Transcription:
+        """Create a new transcription record."""
+        return self.transcription_service.create_transcription(audio_file=audio_file)
+
+    def transcribe(self, transcription: Transcription) -> Transcription:
+        """Transcribe the audio. Updates the transcription in-place and in DB."""
+        transcription.status = Transcription.Status.TRANSCRIBING
+        transcription.save(update_fields=["status", "updated_at"])
+
+        text = self.llm_service.transcribe_audio(transcription.audio_file.path)
+        transcription.transcription = text
+        transcription.status = Transcription.Status.COMPLETED
+        transcription.save(update_fields=["transcription", "status", "updated_at"])
+        return transcription
+
+    def fail(self, transcription: Transcription, error: Exception) -> Transcription:
+        """Mark the transcription as failed."""
+        logger.exception("Failed to transcribe %s.", transcription.id)
+        transcription.status = Transcription.Status.FAILED
+        transcription.error_message = str(error)
+        transcription.save(update_fields=["status", "error_message", "updated_at"])
+        return transcription
+
+
+class AnalysisOrchestrator:
+    """Synchronous analysis processing pipeline."""
+
+    def __init__(self) -> None:
+        self.analysis_service = AnalysisService()
         self.llm_service = LLMService()
 
     def create(
         self,
-        audio_file: UploadedFile,
-        cv_id: uuid.UUID | None = None,
+        transcription_id: uuid.UUID,
         prompt: str = "",
-    ) -> Interview:
-        """Create a new interview record."""
-        return self.interview_service.create_interview(
-            audio_file=audio_file,
+        cv_id: uuid.UUID | None = None,
+    ) -> Analysis:
+        """Create a new analysis record."""
+        return self.analysis_service.create_analysis(
+            transcription_id=transcription_id,
+            prompt=prompt,
             cv_id=cv_id,
-            analysis_prompt=prompt,
         )
 
-    def transcribe(self, interview: Interview) -> Interview:
-        """Transcribe the interview audio. Updates the interview in-place and in DB."""
-        interview.status = Interview.Status.TRANSCRIBING
-        interview.save(update_fields=["status", "updated_at"])
+    def analyze(self, analysis: Analysis) -> Analysis:
+        """Analyze the transcription. Updates the analysis in-place and in DB."""
+        analysis.status = Analysis.Status.ANALYZING
+        analysis.save(update_fields=["status", "updated_at"])
 
-        transcription = self.llm_service.transcribe_audio(interview.audio_file.path)
-        interview.transcription = transcription
-        interview.save(update_fields=["transcription", "updated_at"])
-        return interview
-
-    def analyze(self, interview: Interview, prompt: str = "") -> Interview:
-        """Analyze the interview transcription. Updates the interview in-place and in DB."""
-        interview.status = Interview.Status.ANALYZING
-        interview.save(update_fields=["status", "updated_at"])
-
-        cv_text = interview.cv.text_content if interview.cv else ""
-        analysis = self.llm_service.analyze_interview(
-            transcription=interview.transcription,
-            prompt=prompt or interview.analysis_prompt,
+        cv_text = analysis.cv.text_content if analysis.cv else ""
+        result = self.llm_service.analyze_interview(
+            transcription=analysis.transcription.transcription,
+            prompt=analysis.prompt,
             cv_text=cv_text,
         )
-        interview.analysis = analysis
-        interview.status = Interview.Status.COMPLETED
-        interview.save(update_fields=["analysis", "status", "updated_at"])
-        return interview
+        analysis.result = result
+        analysis.status = Analysis.Status.COMPLETED
+        analysis.save(update_fields=["result", "status", "updated_at"])
+        return analysis
 
-    def fail(self, interview: Interview, error: Exception) -> Interview:
-        """Mark the interview as failed."""
-        logger.exception("Failed to process interview %s.", interview.id)
-        interview.status = Interview.Status.FAILED
-        interview.error_message = str(error)
-        interview.save(update_fields=["status", "error_message", "updated_at"])
-        return interview
-
-    def process_new_interview(
-        self,
-        audio_file: object,
-        cv_id: uuid.UUID | None = None,
-        prompt: str = "",
-    ) -> Interview:
-        """Full pipeline: create -> transcribe -> analyze. Used by tests."""
-        interview = self.interview_service.create_interview(
-            audio_file=audio_file,  # type: ignore[arg-type]
-            cv_id=cv_id,
-            analysis_prompt=prompt,
-        )
-        try:
-            self.transcribe(interview)
-            self.analyze(interview, prompt)
-        except Exception as exc:
-            self.fail(interview, exc)
-        return interview
-
-    def reanalyze_interview(
-        self,
-        interview_id: uuid.UUID,
-        new_prompt: str,
-        cv_id: uuid.UUID | None = None,
-    ) -> Interview:
-        """Re-analyze existing transcription with a new prompt. Used by tests."""
-        interview = self.interview_service.get_interview(interview_id)
-        interview.analysis_prompt = new_prompt
-        if cv_id:
-            interview.cv_id = cv_id
-        interview.save(update_fields=["analysis_prompt", "cv_id", "updated_at"])
-
-        try:
-            self.analyze(interview, new_prompt)
-        except Exception as exc:
-            self.fail(interview, exc)
-        return interview
+    def fail(self, analysis: Analysis, error: Exception) -> Analysis:
+        """Mark the analysis as failed."""
+        logger.exception("Failed to analyze %s.", analysis.id)
+        analysis.status = Analysis.Status.FAILED
+        analysis.error_message = str(error)
+        analysis.save(update_fields=["status", "error_message", "updated_at"])
+        return analysis

@@ -6,11 +6,18 @@ from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import QuerySet
 
-from src.models import CV, Interview
+from src.models import CV, Analysis, Transcription
 
 
-class InterviewQueryFilters(TypedDict):
+class TranscriptionQueryFilters(TypedDict):
     status: NotRequired[str]
+    from_date: NotRequired[datetime]
+    to_date: NotRequired[datetime]
+
+
+class AnalysisQueryFilters(TypedDict):
+    status: NotRequired[str]
+    transcription_id: NotRequired[uuid.UUID]
     from_date: NotRequired[datetime]
     to_date: NotRequired[datetime]
 
@@ -56,9 +63,9 @@ class CVService:
         return "\n".join(text_parts)
 
 
-class InterviewService:
-    def get_interviews(self, filters: InterviewQueryFilters) -> QuerySet[Interview]:
-        queryset = Interview.objects.all()
+class TranscriptionService:
+    def get_transcriptions(self, filters: TranscriptionQueryFilters) -> QuerySet[Transcription]:
+        queryset = Transcription.objects.all()
 
         if "status" in filters:
             queryset = queryset.filter(status=filters["status"])
@@ -69,23 +76,50 @@ class InterviewService:
 
         return queryset
 
-    def get_interview(self, interview_id: uuid.UUID) -> Interview:
-        return Interview.objects.get(pk=interview_id)
+    def get_transcription(self, transcription_id: uuid.UUID) -> Transcription:
+        return Transcription.objects.get(pk=transcription_id)
 
-    def create_interview(
-        self,
-        audio_file: UploadedFile,
-        cv_id: uuid.UUID | None = None,
-        analysis_prompt: str = "",
-    ) -> Interview:
-        interview = Interview.objects.create(
+    def create_transcription(self, audio_file: UploadedFile) -> Transcription:
+        return Transcription.objects.create(
             audio_filename=audio_file.name or "",
             audio_file=audio_file,
-            analysis_prompt=analysis_prompt,
-            cv_id=cv_id,
-            status=Interview.Status.PENDING,
+            status=Transcription.Status.PENDING,
         )
-        return interview
+
+    def get_completed_transcriptions(self) -> QuerySet[Transcription]:
+        return Transcription.objects.filter(status=Transcription.Status.COMPLETED)
+
+
+class AnalysisService:
+    def get_analyses(self, filters: AnalysisQueryFilters) -> QuerySet[Analysis]:
+        queryset = Analysis.objects.select_related("transcription", "cv").all()
+
+        if "status" in filters:
+            queryset = queryset.filter(status=filters["status"])
+        if "transcription_id" in filters:
+            queryset = queryset.filter(transcription_id=filters["transcription_id"])
+        if "from_date" in filters:
+            queryset = queryset.filter(created_at__gte=filters["from_date"])
+        if "to_date" in filters:
+            queryset = queryset.filter(created_at__lte=filters["to_date"])
+
+        return queryset
+
+    def get_analysis(self, analysis_id: uuid.UUID) -> Analysis:
+        return Analysis.objects.select_related("transcription", "cv").get(pk=analysis_id)
+
+    def create_analysis(
+        self,
+        transcription_id: uuid.UUID,
+        prompt: str = "",
+        cv_id: uuid.UUID | None = None,
+    ) -> Analysis:
+        return Analysis.objects.create(
+            transcription_id=transcription_id,
+            prompt=prompt,
+            cv_id=cv_id,
+            status=Analysis.Status.PENDING,
+        )
 
 
 class LLMService:

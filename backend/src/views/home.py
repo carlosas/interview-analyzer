@@ -6,8 +6,8 @@ st.markdown(
     """
 Welcome to the **Interview Analyzer** - an AI-powered tool for analyzing job interviews.
 
-Upload audio recordings of interviews, and our AI will automatically transcribe and
-provide detailed analysis to help you make better hiring decisions.
+Upload audio recordings to transcribe them, then create AI-powered analyses
+to help you make better hiring decisions.
 """
 )
 
@@ -16,16 +16,25 @@ st.divider()
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.subheader("\U0001f3a4 Audio Upload")
-    st.markdown("Upload interview recordings in **MP3**, **WAV**, **M4A**, or **MP4** format.")
+    st.subheader("\U0001f3a4 Transcription")
+    st.markdown(
+        "Upload interview recordings in **MP3**, **WAV**, **M4A**, or **MP4** format "
+        "and get automatic speech-to-text transcription powered by **OpenAI Whisper**."
+    )
 
 with col2:
-    st.subheader("\U0001f4dd Transcription")
-    st.markdown("Automatic speech-to-text transcription powered by **OpenAI Whisper**.")
+    st.subheader("\U0001f4ca Analysis")
+    st.markdown(
+        "Analyze any transcription using **GPT-4o** via LangChain for structured insights. "
+        "Run multiple analyses with different prompts or CVs."
+    )
 
 with col3:
-    st.subheader("\U0001f4ca Analysis")
-    st.markdown("AI-powered analysis using **GPT-4o** via LangChain for structured insights.")
+    st.subheader("\U0001f4c4 CV Management")
+    st.markdown(
+        "Upload candidate CVs in **PDF** format. "
+        "Attach them to analyses for cross-referencing with interview responses."
+    )
 
 st.divider()
 
@@ -46,6 +55,6 @@ st.markdown(
 st.divider()
 
 st.info(
-    "Use the sidebar navigation to access the **Interview Analyzer** or manage **CVs**.",
+    "Use the sidebar navigation to access **Transcription**, **Analysis**, or manage **CVs**.",
     icon="\u2139\ufe0f",
 )

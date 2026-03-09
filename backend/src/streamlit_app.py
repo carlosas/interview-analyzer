@@ -24,7 +24,8 @@ pages = {
         st.Page("views/home.py", title="Home", icon="\U0001f3e0"),
     ],
     "Apps": [
-        st.Page("views/interview_analyzer.py", title="Interview Analyzer", icon="\U0001f916"),
+        st.Page("views/transcription.py", title="Transcription", icon="\U0001f3a4"),
+        st.Page("views/analysis.py", title="Analysis", icon="\U0001f4ca"),
     ],
     "Context": [
         st.Page("views/cv.py", title="Curriculum Vitae", icon="\U0001f4c4"),
