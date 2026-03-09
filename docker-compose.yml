@@ -1,47 +1,70 @@
 services:
-  streamlit-app:
-    build: .
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  app:
+    build:
+      context: ./backend
+      args:
+        POETRY_INSTALL_ARGS: ""
+    command: streamlit run src/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    volumes:
+      - ./backend:/app
+      - media_data:/app/media
     ports:
       - "8501:8501"
-    volumes:
-      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=${DATABASE_URL}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DB_HOST=${DB_HOST}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_PORT=${DB_PORT}
+      - REDIS_URL=${REDIS_URL}
       - LOGIN_USER=${LOGIN_USER}
       - LOGIN_PASSWORD=${LOGIN_PASSWORD}
-      - REDIS_HOST=redis
-    depends_on:
-      - database
-      - redis
-    command: streamlit run src/Home.py --server.port=8501 --server.address=0.0.0.0
+    networks:
+      - app_network
 
   redis:
-    image: redis:alpine
-    restart: always
-
-  database:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
 
   adminer:
-    image: adminer
-    restart: always
+    image: adminer:latest
     ports:
       - "8080:8080"
     depends_on:
-      - database
+      - db
+    networks:
+      - app_network
 
 volumes:
-  postgres_data:
+  db_data:
+  media_data:
+
+networks:
+  app_network:
