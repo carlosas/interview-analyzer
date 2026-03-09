@@ -1,0 +1,39 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+  pull_request:
+    paths:
+      - "backend/**"
+
+jobs:
+  ci:
+    name: Run Linting & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: cp .env.dist .env
+
+      - name: Start services
+        run: docker compose up -d app
+
+      - name: Run Linting Checks
+        run: |
+          echo "Running Ruff check..."
+          docker compose exec -T app ruff check .
+          echo "Running Ruff format check..."
+          docker compose exec -T app ruff format --check .
+
+      - name: Run Tests
+        run: |
+          echo "Running migrations..."
+          docker compose exec -T app python manage.py migrate
+          echo "Running test suite..."
+          docker compose exec -T app python manage.py test tests

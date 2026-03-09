@@ -1,6 +1,46 @@
-.venv
-__pycache__
-.env
-.agent/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 .DS_Store
-uploads/
+
+# Django
+*.log
+local_settings.py
+*.sqlite3
+*.sqlite3-journal
+
+# IDEs
+.idea/
+.vscode/
+
+# Docker
+.docker/
+
+# Environment variables
+.env
+.venv/
+
+# Tools
+.ruff_cache/
+.mypy_cache/
+
+# Media uploads
+media/

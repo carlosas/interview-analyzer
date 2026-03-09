@@ -8,20 +8,23 @@ Interview-Analyzer is a tiny application designed to help you analyze and improv
 
 ## Features
 
-- **AI-Powered Analysis**: Automatically evaluates your interview performance using advanced LLMs.
-- **Transcription**: seamlessly converts audio recordings into text for review.
+- **AI-Powered Analysis**: Automatically evaluates your interview performance using GPT-4o via LangChain.
+- **Transcription**: Seamlessly converts audio recordings into text using OpenAI Whisper.
+- **CV Management**: Upload and manage CVs (PDF) with automatic text extraction for cross-referencing during analysis.
 - **Historical Analysis**: Keeps a record of your past interviews and analyses for tracking progress.
-- **Secure Access**: Simple username/password authentication to protect your data.
-- **Interactive Feedback**: Re-analyze specific parts or ask follow-up questions about your performance.
+- **Re-analyze**: Re-analyze interviews with different prompts or updated CVs.
+- **Secure Access**: Username/password authentication with Redis-backed rate limiting.
 
 ## Tech Stack
 
-This project is built using a modern, robust stack:
-
-- **[Streamlit](https://streamlit.io/)**: For building the interactive web interface.
-- **[LangChain](https://www.langchain.com/)**: To orchestrate the LLM interactions and analysis logic.
-- **[PostgreSQL](https://www.postgresql.org/)**: For persistent storage of transcripts and analysis results.
-- **[Docker](https://www.docker.com/)**: For consistent environment and easy deployment.
+- **[Streamlit](https://streamlit.io/)**: Interactive web interface.
+- **[Django ORM](https://www.djangoproject.com/)**: Database models and data access layer.
+- **[LangChain](https://www.langchain.com/)**: LLM orchestration and analysis logic.
+- **[PostgreSQL](https://www.postgresql.org/)**: Persistent storage of transcripts, analyses, and CVs.
+- **[Redis](https://redis.io/)**: Cache and authentication rate limiting.
+- **[Docker](https://www.docker.com/)**: Consistent environment and easy deployment.
+- **[Poetry](https://python-poetry.org/)**: Dependency management.
+- **[Ruff](https://docs.astral.sh/ruff/)**: Linting and formatting.
 
 ## Getting Started
 
@@ -39,8 +42,7 @@ This project is built using a modern, robust stack:
    cd interview-analyzer
    ```
 
-2. **Configure Environment Variables:**
-   Copy the example environment file:
+2. **Configure environment variables:**
 
    ```bash
    cp .env.dist .env
@@ -48,21 +50,29 @@ This project is built using a modern, robust stack:
 
    Open `.env` and fill in the required values:
    - `OPENAI_API_KEY`: Your OpenAI API key.
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`: Database credentials.
-   - `LOGIN_USER`, `LOGIN_PASSWORD`: Credentials to log in to the app.
+   - `LOGIN_USER`, `LOGIN_PASSWORD`: Credentials to log in to the app (defaults: `admin` / `admin`).
 
-3. **Start the Application:**
-   Run the following command to build and start the services:
+3. **Build and install:**
+
    ```bash
-   docker-compose up --build
+   make install
    ```
+
+4. **Start the application:**
+
+   ```bash
+   make start
+   ```
+
+Run `make help` to see all available commands.
 
 ## Usage
 
 1. Open your browser and navigate to `http://localhost:8501`.
-2. Log in using the credentials you defined in `.env`.
-3. **Analyze New Interview**: Go to the main page to upload an audio file. The system will transcribe and analyze it.
-4. **View History**: Use the sidebar to navigate to past interviews and review the AI's feedback.
+2. Log in using the credentials defined in `.env`.
+3. **Analyze New Interview**: Go to the Interview Analyzer page, upload an audio file (MP3, WAV, M4A, MP4), optionally attach a CV, and click Analyze. The system will transcribe and analyze it with step-by-step progress.
+4. **View History**: Use the sidebar to browse past interviews and review the AI's feedback.
+5. **Manage CVs**: Go to the Curriculum Vitae page to upload, view, edit, or delete CVs.
 
 ## Database Management
 
@@ -70,5 +80,5 @@ The project includes **Adminer** for easy database management.
 
 - Access Adminer at `http://localhost:8080`.
 - System: PostgreSQL.
-- Server: `database`.
+- Server: `db`.
 - Username/Password/Database: As defined in your `.env` file.
