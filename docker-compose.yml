@@ -17,12 +17,12 @@ services:
 
   app:
     build:
-      context: ./backend
+      context: ./analyzer
       args:
         POETRY_INSTALL_ARGS: ""
     command: streamlit run src/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
     volumes:
-      - ./backend:/app
+      - ./analyzer:/app
       - media_data:/app/media
     ports:
       - "8501:8501"

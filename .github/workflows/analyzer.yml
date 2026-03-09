@@ -1,14 +1,14 @@
-name: Backend CI
+name: Analyzer CI
 
 on:
   push:
     branches:
       - main
     paths:
-      - "backend/**"
+      - "analyzer/**"
   pull_request:
     paths:
-      - "backend/**"
+      - "analyzer/**"
 
 jobs:
   ci:

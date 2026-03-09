@@ -4,7 +4,7 @@ You are a Senior Python/Django developer. When generating code or modifications 
 
 ## Project Architecture
 
-- **Single Service**: `backend/` contains the Django models/services + Streamlit UI.
+- **Single Service**: `analyzer/` contains the Django models/services + Streamlit UI.
 - **Service Layer**: Business logic belongs in `src/services.py`. Views should be thin. Check services before modifying views.
 - **Orchestrator**: `src/orchestrator.py` coordinates multi-step interview processing (transcribe + analyze). Uses services synchronously with Streamlit spinners.
 - **AI Integration**: All OpenAI/LangChain calls must go through `LLMService` in `src/services.py`.
