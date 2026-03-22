@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import QuerySet
 
-from src.models import CV, Analysis, Transcription
+from src.models import CV, Analysis, JobApplication, Transcription
 
 
 class TranscriptionQueryFilters(TypedDict):
@@ -121,6 +121,51 @@ class AnalysisService:
             cv_id=cv_id,
             status=Analysis.Status.PENDING,
         )
+
+
+class JobApplicationService:
+    def get_all(
+        self,
+        status: str | None = None,
+        order_by: str = "-created_at",
+    ) -> QuerySet[JobApplication]:
+        queryset = JobApplication.objects.select_related("transcription", "analysis").all()
+        if status:
+            queryset = queryset.filter(status=status)
+        return queryset.order_by(order_by)
+
+    def get_by_id(self, job_application_id: uuid.UUID) -> JobApplication:
+        return JobApplication.objects.select_related(
+            "transcription", "analysis"
+        ).get(pk=job_application_id)
+
+    def create(
+        self,
+        company_name: str,
+        job_title: str,
+        status: str = JobApplication.Status.APPLIED,
+        notes: str = "",
+        transcription_id: uuid.UUID | None = None,
+        analysis_id: uuid.UUID | None = None,
+    ) -> JobApplication:
+        return JobApplication.objects.create(
+            company_name=company_name,
+            job_title=job_title,
+            status=status,
+            notes=notes,
+            transcription_id=transcription_id,
+            analysis_id=analysis_id,
+        )
+
+    def update(self, job_application_id: uuid.UUID, **kwargs: Any) -> JobApplication:
+        app = JobApplication.objects.get(pk=job_application_id)
+        for key, value in kwargs.items():
+            setattr(app, key, value)
+        app.save()
+        return app
+
+    def delete(self, job_application_id: uuid.UUID) -> None:
+        JobApplication.objects.filter(pk=job_application_id).delete()
 
 
 class LLMService:
