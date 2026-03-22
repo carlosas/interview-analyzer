@@ -19,9 +19,15 @@ st.set_page_config(page_title="Interview Analyzer", page_icon="\U0001f916", layo
 if not check_password():
     st.stop()
 
+detail_page = st.Page(
+    "views/job_application_detail.py",
+    title="Application Details",
+    url_path="application-details",
+)
+
 pages = {
     "General": [
-        st.Page("views/home.py", title="Home", icon="\U0001f3e0"),
+        st.Page("views/home.py", title="Job Applications", icon="\U0001f4bc"),
     ],
     "Apps": [
         st.Page("views/analysis.py", title="Interview Analyzer", icon="\U0001f916"),
@@ -31,5 +37,5 @@ pages = {
         st.Page("views/cv.py", title="Curriculum Vitae", icon="\U0001f4c4"),
     ],
 }
-pg = st.navigation(pages)
+pg = st.navigation(pages | {"": [detail_page]})
 pg.run()
