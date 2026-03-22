@@ -43,6 +43,7 @@ except JobApplication.DoesNotExist:
 # --- Back button ---
 if st.button("← Back to Applications", key="btn_back"):
     st.session_state.pop("selected_job_app_id", None)
+    st.session_state.pop("confirm_delete_job_app", None)
     st.switch_page("views/home.py")
 
 st.divider()
