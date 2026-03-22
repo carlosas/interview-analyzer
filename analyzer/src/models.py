@@ -75,3 +75,46 @@ class Analysis(models.Model):
 
     def __str__(self) -> str:
         return f"Analysis {self.id} - {self.transcription.name} ({self.status})"
+
+
+class JobApplication(models.Model):
+    class Status(models.TextChoices):
+        APPLIED = "applied", "Applied"
+        PHONE_SCREEN = "phone_screen", "Phone Screen"
+        TECHNICAL_INTERVIEW = "technical_interview", "Technical Interview"
+        OFFER = "offer", "Offer"
+        ACCEPTED = "accepted", "Accepted"
+        REJECTED = "rejected", "Rejected"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company_name = models.CharField(max_length=255)
+    job_title = models.CharField(max_length=255)
+    status = models.CharField(
+        max_length=30, choices=Status.choices, default=Status.APPLIED
+    )
+    # Deliberate: using default="" instead of null=True per Django TextField convention
+    # (avoids two representations of "no data")
+    notes = models.TextField(blank=True, default="")
+    transcription = models.ForeignKey(
+        "Transcription",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_applications",
+    )
+    analysis = models.ForeignKey(
+        "Analysis",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_applications",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.company_name} — {self.job_title} ({self.get_status_display()})"
