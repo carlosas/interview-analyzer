@@ -8,12 +8,13 @@ django.setup()
 import streamlit as st  # noqa: E402
 
 from src.orchestrator import AnalysisOrchestrator  # noqa: E402
-from src.services import AnalysisService, CVService, TranscriptionService  # noqa: E402
+from src.services import AnalysisService, CVService, JobApplicationService, TranscriptionService  # noqa: E402
 
 analysis_service = AnalysisService()
 transcription_service = TranscriptionService()
 cv_service = CVService()
 orchestrator = AnalysisOrchestrator()
+job_app_service = JobApplicationService()
 
 DEFAULT_PROMPT = """You are an interview analysis engine. Analyze a job interview using only the provided interview transcript and the candidate's CV.
 
@@ -203,6 +204,39 @@ else:
 
     else:
         st.info(f"Status: {analysis.get_status_display()}")
+
+    # Link to Job Application
+    st.divider()
+    st.subheader("Link to Job Application")
+    job_applications = list(job_app_service.get_all())
+    job_app_options = ["None"] + [
+        f"{ja.company_name} — {ja.job_title}" for ja in job_applications
+    ]
+
+    current_link_idx = 0
+    for i, ja in enumerate(job_applications):
+        if ja.analysis_id == analysis.id:
+            current_link_idx = i + 1
+            break
+
+    link_choice = st.selectbox(
+        "Job Application",
+        job_app_options,
+        index=current_link_idx,
+        key="analysis_job_app_link",
+    )
+
+    if st.button("Save Link", key="btn_save_analysis_link"):
+        if current_link_idx > 0:
+            old_app = job_applications[current_link_idx - 1]
+            job_app_service.update(old_app.id, analysis_id=None)
+
+        if link_choice != "None":
+            new_app = job_applications[job_app_options.index(link_choice) - 1]
+            job_app_service.update(new_app.id, analysis_id=analysis.id)
+
+        st.success("Link updated!")
+        st.rerun()
 
     # Delete button
     st.divider()

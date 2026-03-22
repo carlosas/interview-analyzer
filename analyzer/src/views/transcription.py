@@ -9,10 +9,11 @@ import streamlit as st  # noqa: E402
 from django.core.files.uploadedfile import SimpleUploadedFile  # noqa: E402
 
 from src.orchestrator import TranscriptionOrchestrator  # noqa: E402
-from src.services import TranscriptionService  # noqa: E402
+from src.services import JobApplicationService, TranscriptionService  # noqa: E402
 
 transcription_service = TranscriptionService()
 orchestrator = TranscriptionOrchestrator()
+job_app_service = JobApplicationService()
 
 st.title("\U0001f3a4 Interviews")
 
@@ -105,6 +106,42 @@ elif "selected_transcription_idx" in st.session_state and transcriptions:
 
     else:
         st.info(f"Status: {transcription.get_status_display()}")
+
+    # Link to Job Application
+    st.divider()
+    st.subheader("Link to Job Application")
+    job_applications = list(job_app_service.get_all())
+    job_app_options = ["None"] + [
+        f"{ja.company_name} — {ja.job_title}" for ja in job_applications
+    ]
+
+    # Find first current link (if any — multiple apps could link to this transcription)
+    current_link_idx = 0
+    for i, ja in enumerate(job_applications):
+        if ja.transcription_id == transcription.id:
+            current_link_idx = i + 1
+            break
+
+    link_choice = st.selectbox(
+        "Job Application",
+        job_app_options,
+        index=current_link_idx,
+        key="transcription_job_app_link",
+    )
+
+    if st.button("Save Link", key="btn_save_transcription_link"):
+        # Clear old link if exists
+        if current_link_idx > 0:
+            old_app = job_applications[current_link_idx - 1]
+            job_app_service.update(old_app.id, transcription_id=None)
+
+        # Set new link
+        if link_choice != "None":
+            new_app = job_applications[job_app_options.index(link_choice) - 1]
+            job_app_service.update(new_app.id, transcription_id=transcription.id)
+
+        st.success("Link updated!")
+        st.rerun()
 
     # Delete button
     st.divider()
