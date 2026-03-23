@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+export COMPOSE_BAKE=true
+
+echo "Running ruff lint checks..."
+docker compose run --rm app ruff check . || exit 1
+
+echo "Running ruff format checks..."
+docker compose run --rm app ruff format --check . || exit 1
+
+echo "Running tests..."
+docker compose run --rm app python manage.py test tests || exit 1
+
+echo "All pre-commit checks passed!"

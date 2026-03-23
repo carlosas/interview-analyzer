@@ -1,4 +1,4 @@
-.PHONY: help install start stop restart logs purge rebuild poetry-lock-update shell migrate tests lint
+.PHONY: help install start stop restart logs purge rebuild poetry-lock-update shell migrate tests lint hooks
 
 COMPOSE = COMPOSE_BAKE=true docker compose
 
@@ -15,6 +15,7 @@ help:
 	@echo "  make purge                - Remove all containers, images, networks and volumes"
 	@echo "  make rebuild              - Rebuild images without cache and restart"
 	@echo "  make poetry-lock-update   - Update lock files (upgrades to latest compatible)"
+	@echo "  make hooks                - Configure git to use project hooks (.githooks/)"
 	@echo "  make shell                - Open bash shell in app container"
 
 install:
@@ -91,3 +92,11 @@ tests:
 	@echo "Running tests..."
 	$(COMPOSE) run --rm app python manage.py test tests
 	@echo "Tests complete!"
+
+hooks:
+	@if [ "$$(git config core.hooksPath)" = ".githooks" ]; then \
+		echo "Git hooks already configured."; \
+	else \
+		git config core.hooksPath .githooks; \
+		echo "Git hooks configured to use .githooks/"; \
+	fi

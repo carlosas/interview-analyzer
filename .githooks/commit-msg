@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+COMMIT_MSG_FILE="$1"
+
+if grep -qiE "claude|anthropic|gemini|codex|copilot" "$COMMIT_MSG_FILE"; then
+    echo ""
+    echo "ERROR: Do not include AI co-authoring references in the commit message."
+    echo "Remove any mentions of Claude, Anthropic, Gemini, Codex, or Copilot."
+    echo ""
+    exit 1
+fi
