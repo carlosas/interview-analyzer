@@ -64,9 +64,7 @@ notes = st.text_area("Notes", value=app.notes, height=200, key="detail_notes")
 
 # --- Linked Transcription ---
 transcriptions = list(transcription_service.get_completed_transcriptions())
-transcription_options = ["None"] + [
-    f"{t.name} ({t.created_at:%Y-%m-%d})" for t in transcriptions
-]
+transcription_options = ["None"] + [f"{t.name} ({t.created_at:%Y-%m-%d})" for t in transcriptions]
 current_transcription_idx = 0
 if app.transcription_id:
     for i, t in enumerate(transcriptions):
@@ -83,9 +81,7 @@ transcription_choice = st.selectbox(
 
 # --- Linked Analysis ---
 analyses = list(analysis_service.get_analyses({}))
-analysis_options = ["None"] + [
-    f"{a.transcription.name} ({a.status})" for a in analyses
-]
+analysis_options = ["None"] + [f"{a.transcription.name} ({a.status})" for a in analyses]
 current_analysis_idx = 0
 if app.analysis_id:
     for i, a in enumerate(analyses):
@@ -101,10 +97,7 @@ analysis_choice = st.selectbox(
 )
 
 # --- Timestamps ---
-st.caption(
-    f"Created: {app.created_at:%Y-%m-%d %H:%M} | "
-    f"Updated: {app.updated_at:%Y-%m-%d %H:%M}"
-)
+st.caption(f"Created: {app.created_at:%Y-%m-%d %H:%M} | Updated: {app.updated_at:%Y-%m-%d %H:%M}")
 
 # --- Save ---
 st.divider()

@@ -50,7 +50,8 @@ class TestJobApplicationService(TestCase):
         """get_all should filter by status when provided."""
         self.service.create(company_name="A", job_title="X")
         self.service.create(
-            company_name="B", job_title="Y",
+            company_name="B",
+            job_title="Y",
             status=JobApplication.Status.OFFER,
         )
 

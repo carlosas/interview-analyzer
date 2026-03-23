@@ -135,9 +135,9 @@ class JobApplicationService:
         return queryset.order_by(order_by)
 
     def get_by_id(self, job_application_id: uuid.UUID) -> JobApplication:
-        return JobApplication.objects.select_related(
-            "transcription", "analysis"
-        ).get(pk=job_application_id)
+        return JobApplication.objects.select_related("transcription", "analysis").get(
+            pk=job_application_id
+        )
 
     def create(
         self,

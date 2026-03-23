@@ -92,9 +92,7 @@ if st.session_state.get("job_app_mode") == "new":
     )
 
     analyses = list(analysis_service.get_analyses({}))
-    analysis_options = ["None"] + [
-        f"{a.transcription.name} ({a.status})" for a in analyses
-    ]
+    analysis_options = ["None"] + [f"{a.transcription.name} ({a.status})" for a in analyses]
     analysis_choice = st.selectbox(
         "Link Analysis (optional)",
         analysis_options,
@@ -146,7 +144,9 @@ else:
     applications = list(job_app_service.get_all(status=status_filter, order_by=order_by))
 
     if not applications:
-        st.info("No job applications yet. Click '➕ Add Application' in the sidebar to get started.")
+        st.info(
+            "No job applications yet. Click '➕ Add Application' in the sidebar to get started."
+        )
     else:
         for app in applications:
             color = STATUS_COLORS.get(app.status, "gray")

@@ -111,9 +111,7 @@ elif "selected_transcription_idx" in st.session_state and transcriptions:
     st.divider()
     st.subheader("Link to Job Application")
     job_applications = list(job_app_service.get_all())
-    job_app_options = ["None"] + [
-        f"{ja.company_name} — {ja.job_title}" for ja in job_applications
-    ]
+    job_app_options = ["None"] + [f"{ja.company_name} — {ja.job_title}" for ja in job_applications]
 
     # Find first current link (if any — multiple apps could link to this transcription)
     current_link_idx = 0

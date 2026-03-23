@@ -8,7 +8,12 @@ django.setup()
 import streamlit as st  # noqa: E402
 
 from src.orchestrator import AnalysisOrchestrator  # noqa: E402
-from src.services import AnalysisService, CVService, JobApplicationService, TranscriptionService  # noqa: E402
+from src.services import (  # noqa: E402
+    AnalysisService,
+    CVService,
+    JobApplicationService,
+    TranscriptionService,
+)
 
 analysis_service = AnalysisService()
 transcription_service = TranscriptionService()
@@ -209,9 +214,7 @@ else:
     st.divider()
     st.subheader("Link to Job Application")
     job_applications = list(job_app_service.get_all())
-    job_app_options = ["None"] + [
-        f"{ja.company_name} — {ja.job_title}" for ja in job_applications
-    ]
+    job_app_options = ["None"] + [f"{ja.company_name} — {ja.job_title}" for ja in job_applications]
 
     current_link_idx = 0
     for i, ja in enumerate(job_applications):

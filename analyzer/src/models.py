@@ -89,9 +89,7 @@ class JobApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     company_name = models.CharField(max_length=255)
     job_title = models.CharField(max_length=255)
-    status = models.CharField(
-        max_length=30, choices=Status.choices, default=Status.APPLIED
-    )
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.APPLIED)
     # Deliberate: using default="" instead of null=True per Django TextField convention
     # (avoids two representations of "no data")
     notes = models.TextField(blank=True, default="")
